@@ -58,8 +58,7 @@
 <ol>
 <li><p>确定映射关系为正整数m对应的第m个bit位为1。需要N个bit位，如果用java中的int类型存储则需要一个(N/8)个字节也就是一个长度为(N/32 + 1)int数组，(java中一个int占4个字节)。申请一个数组array[N/32 + 1];  </p>
 </li>
-<li><p>确定正整数m对应的数组array下标。数组array[i]为int类型，因此可以存储32个bit位。[0,31]存储在array[0],</p>
-<p>[32,63]存储在array[1]，依次类推，可以归纳出公式<code>i=m/32</code>。  </p>
+<li><p>确定正整数m对应的数组array下标。数组array[i]为int类型，因此可以存储32个bit位。[0,31]存储在array[0],[32,63]存储在array[1]，依次类推，可以归纳出公式<code>i=m/32</code>。  </p>
 </li>
 <li><p>确定正整数m在数组array[m/32]中的位置。<code>offset=m%32</code>，接下来将array[m/32]中对应的第offset个bit位置为1，可以通过移位运算实现，计算公式为<code>array[m/32]+=(1&lt;&lt;(m%32))</code>。注意这里是<strong>+=</strong>，具体原因可以思考下。   </p>
 </li>
