@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  
+  <title>rebase使用的建议姿势 - My Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  
+  <meta name="keywords" content="git">
+  
+  
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.02">
+  
+  
+    <link rel="alternate" href="/atom.xml " title="My Blog" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/style.css">
+</head></html>
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="blog-title">
+    <a href="/" class="logo">My Blog</a>
+    <div class="subtitle"></div>
+  </div>
+  <nav class="navbar">
+    <ul class="menu">
+      
+        <li class="menu-item">
+          <a href="/" class="menu-item-link">Home</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/archives" class="menu-item-link">Archives</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/about" class="menu-item-link">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+</header>
+<article class="post">
+  <div class="post-title">
+    <h1 class="article-title">rebase使用的建议姿势</h1>
+  </div>
+   <div class="post-meta">
+    <span class="post-time">2019-09-28</span>
+  </div>
+  <div class="post-content">
+    <p>通过一个场景来说明rebase的最佳使用姿势：</p>
+<p>假设有一个master分支，现在来了一个新需求，增加一个支付功能，因此需要切一个feature/pay分支，然后开发完成之后需要将feature/pay分支合并到master分支（一般不会直接合并到master分支的，这里简化处理），操作步骤如下：</p>
+<ol>
+<li>切换到master分支，pull最新代码；</li>
+<li>切换到feature/pay分支，执行<code>git rebase -i HEAD~5</code>,合并5个commits；</li>
+<li>执行<code>git rebase master</code>，将master最新代码同步到feature/pay分支。可能会有冲突，手动解决完冲突后 ，执行<code>git rebase --continue</code>；</li>
+<li>切换到master分支，执行<code>git merge feature/pay</code>，将分支代码合并到master；</li>
+<li>push master到远程仓库。</li>
+</ol>
+<p>rebase和merge的使用建议：</p>
+<p>一般主分支合并到其他分支使用rebase，其他分支合并到主分支使用merge。</p>
+
+  </div>
+  <div class="post-footer">
+    
+      <ul class="post-tag-list"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/git/">git</a></li></ul>
+    
+
+    <a href="#top" class="top">Back to Top</a>
+  </div>
+</article>
+<footer>
+  &copy; 2019
+  <span class="author">
+    Simba Lee
+  </span>
+</footer>
+    </div>
+  </body>
+</html>
