@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  
+  <title>Hamcrest简介 - My Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  
+  <meta name="keywords" content="java">
+  
+  
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.02">
+  
+  
+    <link rel="alternate" href="/atom.xml " title="My Blog" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/style.css">
+</head></html>
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="blog-title">
+    <a href="/" class="logo">My Blog</a>
+    <div class="subtitle"></div>
+  </div>
+  <nav class="navbar">
+    <ul class="menu">
+      
+        <li class="menu-item">
+          <a href="/" class="menu-item-link">Home</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/archives" class="menu-item-link">Archives</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/about" class="menu-item-link">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+</header>
+<article class="post">
+  <div class="post-title">
+    <h1 class="article-title">Hamcrest简介</h1>
+  </div>
+   <div class="post-meta">
+    <span class="post-time">2019-12-02</span>
+  </div>
+  <div class="post-content">
+    <p><code>HarmCrest</code>是一个<code>java</code>单元测试框架，添加了大量被称为匹配器的方法，常用方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> 字符串匹配</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stringTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String str1 = <span class="string">"abc"</span>;</span><br><span class="line">    String str2 = <span class="string">"abc "</span>;</span><br><span class="line">    String str3 = <span class="string">"aBc"</span>;</span><br><span class="line">    String str4 = <span class="string">"abcde"</span>;</span><br><span class="line">    String str5 = <span class="string">""</span>;</span><br><span class="line">    assertThat(str1, not(is(str2)));</span><br><span class="line">    assertThat(str1, is(equalToIgnoringWhiteSpace(str2)));</span><br><span class="line">    assertThat(str1, is(equalToIgnoringCase(str3)));</span><br><span class="line">    assertThat(str1, is(startsWith(<span class="string">"a"</span>)));</span><br><span class="line">    assertThat(str1, anyOf(startsWith(<span class="string">"a"</span>), endsWith(<span class="string">"d"</span>)));</span><br><span class="line">    assertThat(str1, allOf(startsWith(<span class="string">"a"</span>), endsWith(<span class="string">"c"</span>)));</span><br><span class="line">    assertThat(str4, containsString(str1));</span><br><span class="line">    assertThat(str5, isEmptyString());</span><br><span class="line">    assertThat(str5, isEmptyOrNullString());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">数字匹配</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">numberTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    assertThat(<span class="number">8</span>, greaterThan(<span class="number">6</span>));</span><br><span class="line">    assertThat(<span class="number">8</span>, greaterThanOrEqualTo(<span class="number">8</span>));</span><br><span class="line">    assertThat(<span class="number">1</span>, lessThan(<span class="number">2</span>));</span><br><span class="line">    assertThat(<span class="number">1</span>, lessThanOrEqualTo(<span class="number">2</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">集合匹配</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">collectionTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    List&lt;String&gt; list = Arrays.asList(<span class="string">"ab"</span>, <span class="string">"bc"</span>, <span class="string">"cd"</span>);</span><br><span class="line">    assertThat(list, hasItem(<span class="string">"ab"</span>));</span><br><span class="line">    assertThat(list, hasItems(<span class="string">"cd"</span>, <span class="string">"bc"</span>));</span><br><span class="line">    assertThat(list, containsInAnyOrder(<span class="string">"bc"</span>, <span class="string">"cd"</span>, <span class="string">"ab"</span>));</span><br><span class="line">    assertThat(list, not(Matchers.&lt;String&gt;empty()));</span><br><span class="line">    assertThat(list, hasSize(<span class="number">3</span>));</span><br><span class="line">    assertThat(list,everyItem(not(isEmptyOrNullString())));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+  </div>
+  <div class="post-footer">
+    
+      <ul class="post-tag-list"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/java/">java</a></li></ul>
+    
+
+    <a href="#top" class="top">Back to Top</a>
+  </div>
+</article>
+<footer>
+  &copy; 2019
+  <span class="author">
+    Simba Lee
+  </span>
+</footer>
+    </div>
+  </body>
+</html>
