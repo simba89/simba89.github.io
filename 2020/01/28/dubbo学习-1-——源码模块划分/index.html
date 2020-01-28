@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  
+  <title>dubbo学习(1)——源码模块划分 - My Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  
+  <meta name="keywords" content="生活,博客">
+  
+  
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.02">
+  
+  
+    <link rel="alternate" href="/atom.xml " title="My Blog" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/style.css">
+</head></html>
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="blog-title">
+    <a href="/" class="logo">My Blog</a>
+    <div class="subtitle"></div>
+  </div>
+  <nav class="navbar">
+    <ul class="menu">
+      
+        <li class="menu-item">
+          <a href="/" class="menu-item-link">Home</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/archives" class="menu-item-link">Archives</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/about" class="menu-item-link">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+</header>
+<article class="post">
+  <div class="post-title">
+    <h1 class="article-title">dubbo学习(1)——源码模块划分</h1>
+  </div>
+   <div class="post-meta">
+    <span class="post-time">2020-01-28</span>
+  </div>
+  <div class="post-content">
+    <h2 id="1-dubbo各个模块依赖关系"><a href="#1-dubbo各个模块依赖关系" class="headerlink" title="1. dubbo各个模块依赖关系"></a>1. dubbo各个模块依赖关系</h2><p><img src="https://i.loli.net/2020/01/28/wME7mSfUOeiXTkP.png" alt="dubbo模块依赖关系图.png"></p>
+<h2 id="2-模块介绍"><a href="#2-模块介绍" class="headerlink" title="2.模块介绍"></a>2.模块介绍</h2><h3 id="1-dubbo-registry"><a href="#1-dubbo-registry" class="headerlink" title="1. dubbo-registry"></a>1. dubbo-registry</h3><p><strong><code>dubbo</code>注册中心</strong>  </p>
+<p><em>基于注册中心下发地址的集群方式，以及对各种注册中心的抽象</em></p>
+<p>这个模块封装了dubbo注册中心的各种实现：</p>
+<ol>
+<li>simple注册中心 <code>dubbo-registry-default</code>；</li>
+<li>multicast注册中心 <code>dubbo-registry-multicast</code>；</li>
+<li>zookeeper注册中心 <code>dubbo-registry-zookeeper</code>；</li>
+<li>redis注册中心 <code>dubbo-registry-redis</code>。</li>
+</ol>
+<p><code>dubbo-registry-api</code>是注册中心的抽象，提供与实现无关的接口层，通过SPI机制可以挂载不同注册中心实现。</p>
+<h3 id="2-dubbo-cluster"><a href="#2-dubbo-cluster" class="headerlink" title="2. dubbo-cluster"></a>2. dubbo-cluster</h3><p><strong><code>dubbo</code>集群</strong></p>
+<p>将多个服务提供方伪装为一个提供方，包括：负载均衡, 容错，路由等，集群的地址列表可以是静态配置的，也可以是由注册中心下发。</p>
+<p>我理解这个模块主要是服务实例集群的高可用管理。封装了集群的容错策略，也提供了自己扩展的机制。</p>
+<ol>
+<li>configurator包：配置包，dubbo的基本设计原则是采用URL作为配置信息的统一格式，所有拓展点都通过传递URL携带配置信息，这个包就是用来根据统一的配置规则生成配置信息。</li>
+<li>directory包：Directory 代表了多个 Invoker，并且它的值会随着注册中心的服务变更推送而变化 。这里介绍一下Invoker，Invoker是Provider的一个调用Service的抽象，Invoker封装了Provider地址以及Service接口信息。</li>
+<li>loadbalance包：封装了负载均衡的实现，负责利用负载均衡算法从多个Invoker中选出具体的一个Invoker用于此次的调用，如果调用失败，则需要重新选择。</li>
+<li>merger包：封装了合并返回结果，分组聚合到方法，支持多种数据结构类型。</li>
+<li>router包：封装了路由规则的实现，路由规则决定了一次dubbo服务调用的目标服务器，路由规则分两种：条件路由规则和脚本路由规则，并且支持可拓展。</li>
+<li>support包：封装了各类Invoker和cluster，包括集群容错模式和分组聚合的cluster以及相关的Invoker。</li>
+</ol>
+<h3 id="3-dubbo-common"><a href="#3-dubbo-common" class="headerlink" title="3.dubbo-common"></a>3.dubbo-common</h3><p><strong><code>dubbo</code>公共类</strong></p>
+<p>包括 Util 类和通用模型。</p>
+<p>我的理解是主要包含工具类和通用模型。</p>
+<p>###4.dubbo-config</p>
+<p><strong><code>dubbo</code>配置模块</strong></p>
+<p>是 Dubbo 对外的 API，用户通过 Config 使用Dubbo，隐藏 Dubbo 所有细节。</p>
+<p>提供了四种配置dubbo的方法，包括XML配置、属性配置、API配置、注解配置。</p>
+<h3 id="5-dubbo-rpc"><a href="#5-dubbo-rpc" class="headerlink" title="5. dubbo-rpc"></a>5. dubbo-rpc</h3><p><strong><code>dubbo</code>远程调用模块</strong></p>
+<p>抽象各种协议，以及动态代理，只包含一对一的调用，不关心集群的管理。</p>
+<p>提供各种rpc协议实现，主要包括<code>dubbo</code>，<code>thrift</code>，<code>webservice</code>等，也可以扩展自己的实现。</p>
+<h3 id="6-dubbo-remoting"><a href="#6-dubbo-remoting" class="headerlink" title="6. dubbo-remoting"></a>6. dubbo-remoting</h3><p><strong><code>dubbo</code>远程通信模块</strong></p>
+<p>相当于 Dubbo 协议的实现，如果 RPC 用 RMI协议则不需要使用此包。</p>
+<p>提供了多种客户端和服务端通信功能，比如基于Grizzly、Netty、Tomcat等等，RPC用除了RMI的协议都要用到此模块。</p>
+<h3 id="7-dubbo-container"><a href="#7-dubbo-container" class="headerlink" title="7. dubbo-container"></a>7. dubbo-container</h3><p><strong><code>dubbo</code>容器模块</strong></p>
+<p>是一个 Standlone 的容器，以简单的 Main 加载 Spring 启动，因为服务通常不需要 Tomcat/JBoss 等 Web 容器的特性，没必要用 Web 容器去加载服务。</p>
+<p>因为后台服务不需要Tomcat/JBoss 等 Web 容器的功能，不需要用这些厚实的容器去加载服务提供方，既资源浪费，又增加复杂度。服务容器只是一个简单的Main方法，加载一些内置的容器，也支持扩展容器。</p>
+<h3 id="8-dubbo-monitor"><a href="#8-dubbo-monitor" class="headerlink" title="8. dubbo-monitor"></a>8. dubbo-monitor</h3><p><strong><code>dubbo</code>监控模块</strong></p>
+<p>统计服务调用次数，调用时间的，调用链跟踪的服务。</p>
+<h3 id="9-dubbo-bootstrap"><a href="#9-dubbo-bootstrap" class="headerlink" title="9. dubbo-bootstrap"></a>9. dubbo-<strong>bootstrap</strong></h3><p><strong><code>dubbo</code>清理模块</strong></p>
+<p>这个模块作为dubbo的引导类，并且在停止期间进行清理资源。</p>
+<h3 id="10-dubbo-serialization"><a href="#10-dubbo-serialization" class="headerlink" title="10. dubbo-serialization"></a>10. dubbo-serialization</h3><p><strong><code>dubbo</code>序列化</strong></p>
+<p>这个模块封装了一些常用的序列化实现，也可以扩展自己的序列化。</p>
+<p>还有一些其他模块比较简单，就不一一赘述。</p>
+
+  </div>
+  <div class="post-footer">
+    
+
+    <a href="#top" class="top">Back to Top</a>
+  </div>
+</article>
+<footer>
+  &copy; 2020
+  <span class="author">
+    Simba Lee
+  </span>
+</footer>
+    </div>
+  </body>
+</html>
