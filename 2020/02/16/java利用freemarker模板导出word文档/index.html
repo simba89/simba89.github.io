@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  
+  <title>java利用freemarker模板导出word文档 - My Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  
+  <meta name="keywords" content="生活,博客">
+  
+  
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.02">
+  
+  
+    <link rel="alternate" href="/atom.xml " title="My Blog" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/style.css">
+</head></html>
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="blog-title">
+    <a href="/" class="logo">My Blog</a>
+    <div class="subtitle"></div>
+  </div>
+  <nav class="navbar">
+    <ul class="menu">
+      
+        <li class="menu-item">
+          <a href="/" class="menu-item-link">Home</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/archives" class="menu-item-link">Archives</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/about" class="menu-item-link">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+</header>
+<article class="post">
+  <div class="post-title">
+    <h1 class="article-title">java利用freemarker模板导出word文档</h1>
+  </div>
+   <div class="post-meta">
+    <span class="post-time">2020-02-16</span>
+  </div>
+  <div class="post-content">
+    <ol>
+<li><p>新建一个word文档，在需要程序传入的地方用EL表达式表示，例如<code>${person.name}</code>，其中<code>person</code>为程序中要导入的数据对象，<code>name</code>为属性，也可以是map的key值，例如<code>${name}</code>；</p>
+</li>
+<li><p>将word文档另存为xml文档；</p>
+</li>
+<li><p>将文档后缀修改为<code>.ftl</code>；</p>
+</li>
+<li><p>添加依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.freemarker<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>freemarker<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3.28<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>导出word文档：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Configuration configuration = <span class="keyword">new</span> Configuration();</span><br><span class="line">configuration.setDefaultEncoding(<span class="string">"utf-8"</span>);</span><br><span class="line">configuration.setClassicCompatible(<span class="keyword">true</span>);</span><br><span class="line">configuration.setDirectoryForTemplateLoading(<span class="keyword">new</span> File(templateDir));</span><br><span class="line">File outFile = <span class="keyword">new</span> File(outputPath);</span><br><span class="line">Template t =  configuration.getTemplate(<span class="string">"newtemplate.ftl"</span>,<span class="string">"utf-8"</span>);</span><br><span class="line">Writer out = <span class="keyword">new</span> BufferedWriter(<span class="keyword">new</span> OutputStreamWriter(<span class="keyword">new</span>          			FileOutputStream(outFile), <span class="string">"utf-8"</span>),<span class="number">10240</span>);</span><br><span class="line">t.process(map, out);</span><br><span class="line">out.close();</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h4 id="常见的坑："><a href="#常见的坑：" class="headerlink" title="常见的坑："></a>常见的坑：</h4><ol>
+<li>生成的文档中不能包含<code>&amp;,&gt; ,&lt;</code>，如果包含需要分别转义为：<code>&amp; &gt; &lt;</code>。 如果不转义会导致生成的word文档打不开。</li>
+<li>在制作<code>freemarker</code>模版的时候会出现类似下面的错误信息：</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"> freemarker.core.ParseException: Encountered &quot;&lt;&quot; at line 3, column 28888 in test.ftl.  </span><br><span class="line"></span><br><span class="line">Was expecting one of:  </span><br><span class="line">    &lt;STRING_LITERAL&gt; ...  </span><br><span class="line">    &lt;RAW_STRING&gt; ...  </span><br><span class="line">    &quot;false&quot; ...  </span><br><span class="line">    &quot;true&quot; ...  </span><br><span class="line">    &lt;INTEGER&gt; ...  </span><br><span class="line">    &lt;DECIMAL&gt; ...  </span><br><span class="line">    &quot;.&quot; ...  </span><br><span class="line">    &quot;+&quot; ...  </span><br><span class="line">    &quot;-&quot; ...  </span><br><span class="line">    &quot;!&quot; ...  </span><br><span class="line">    &quot;[&quot; ...  </span><br><span class="line">    &quot;(&quot; ...</span><br></pre></td></tr></table></figure>
+
+<p>由于<code>${xxx}</code>中的<code>xxx</code>格式与其前方的文字不一致, 在生成xml时,就会有一些修饰<code>xxx</code>样式的标签,例如修饰<code>xxx</code>的字体,颜色等的标签, 所以在word中看似写的是<code>${xxx}</code>,实际上转为xml后变成了类似<code>${xxx}</code>的结构,这样就解析不了，会出现上面类似的错误, 可以去掉<code>$、{、}</code>周围的标签只留下<code>xxx</code>并且删掉 <code>$,{</code>“ 和 <code>}</code>然后给<code>xxx</code>加上el表达式即改为<code>${xxx}</code>这样的形式就ok了。<br>\3. 当传入对象为空或者有空值时会出现空指针异常，错误信息类似下面：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">ERROR: freemarker.runtime - Error executing FreeMarker template</span><br><span class="line">FreeMarker template error:</span><br><span class="line">The following has evaluated to null or missing:</span><br><span class="line">==&gt; user  [in template &quot;include/header.ftl&quot; at line 4, column 14]</span><br><span class="line"> </span><br><span class="line">----</span><br><span class="line">Tip: If the failing expression is known to be legally refer to something that&apos;s sometimes null or missing, either specify a default value like myOptionalVar!myDefault, or use &lt;#if myOptionalVar??&gt;when-present&lt;#else&gt;when-missing&lt;/#if&gt;. (These only cover the last step of the expression; to cover the whole expression, use parenthesis: (myOptionalVar.foo)!myDefault, (myOptionalVar.foo)??</span><br><span class="line">----</span><br><span class="line"> </span><br><span class="line">----</span><br><span class="line">FTL stack trace (&quot;~&quot; means nesting-related):</span><br><span class="line">    - Failed at: #if user  [in template &quot;include/header.ftl&quot; at line 4, column 9]</span><br><span class="line">    - Reached through: #include &quot;/include/header.ftl&quot;  [in template &quot;index.ftl&quot; at line 6, column 1]</span><br><span class="line">----</span><br><span class="line"> </span><br><span class="line">Java stack trace (for programmers):</span><br><span class="line">----</span><br><span class="line">freemarker.core.InvalidReferenceException: [... Exception message was already printed; see it above ...]</span><br><span class="line">    at freemarker.core.InvalidReferenceException.getInstance(InvalidReferenceException.java:131)</span><br><span class="line">    at freemarker.core.UnexpectedTypeException.newDesciptionBuilder(UnexpectedTypeException.java:77</span><br></pre></td></tr></table></figure>
+
+<p>解决方案如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">configuration.setClassicCompatible(<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+
+<p>如果是xml配置，则添加配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">prop</span> <span class="attr">key</span>=<span class="string">"classic_compatible"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">prop</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果是属性配置，则添加属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spring.freemarker.settings.classic_compatible=true</span><br></pre></td></tr></table></figure>
+  </div>
+  <div class="post-footer">
+    
+
+    <a href="#top" class="top">Back to Top</a>
+  </div>
+</article>
+<footer>
+  &copy; 2020
+  <span class="author">
+    Simba Lee
+  </span>
+</footer>
+    </div>
+  </body>
+</html>
