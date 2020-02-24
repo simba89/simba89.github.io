@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  
+  <title>springboot配置druid连接池 - My Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  
+  <meta name="keywords" content="生活,博客">
+  
+  
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.02">
+  
+  
+    <link rel="alternate" href="/atom.xml " title="My Blog" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/style.css">
+</head></html>
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="blog-title">
+    <a href="/" class="logo">My Blog</a>
+    <div class="subtitle"></div>
+  </div>
+  <nav class="navbar">
+    <ul class="menu">
+      
+        <li class="menu-item">
+          <a href="/" class="menu-item-link">Home</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/archives" class="menu-item-link">Archives</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/about" class="menu-item-link">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+</header>
+<article class="post">
+  <div class="post-title">
+    <h1 class="article-title">springboot配置druid连接池</h1>
+  </div>
+   <div class="post-meta">
+    <span class="post-time">2020-02-24</span>
+  </div>
+  <div class="post-content">
+    <p><code>Springboot</code>配置<code>druid</code>数据连接池有两种方式，比较类似，但是如果搞混了容易导致部分配置不生效。</p>
+<h3 id="1-starter方式"><a href="#1-starter方式" class="headerlink" title="1.starter方式"></a>1.starter方式</h3><p>这种比较简单</p>
+<p>1.引入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>druid-spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.1.20<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>2.添加属性</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">spring.datasource.type=com.alibaba.druid.pool.DruidDataSource</span><br><span class="line">spring.datasource.url=jdbc:mysql://localhost:3306/workflow?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false</span><br><span class="line">spring.datasource.username=workflow</span><br><span class="line">spring.datasource.password=workflow</span><br><span class="line">spring.datasource.driver-class-name=com.mysql.jdbc.Driver</span><br><span class="line"></span><br><span class="line">spring.jpa.database-platform=org.hibernate.dialect.MySQL5InnoDBDialect</span><br><span class="line"></span><br><span class="line">spring.datasource.druid.initial-size=1</span><br><span class="line">spring.datasource.druid.max-active=20</span><br><span class="line">spring.datasource.druid.min-idle=3</span><br><span class="line">spring.datasource.druid.max-wait=60000</span><br><span class="line">spring.datasource.druid.pool-prepared-statements=true</span><br><span class="line">spring.datasource.druid.max-pool-prepared-statement-per-connection-size=20</span><br><span class="line">spring.datasource.druid.filters=stat,wall,slf4j</span><br><span class="line">spring.datasource.druid.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000</span><br></pre></td></tr></table></figure>
+
+<p>这样启动项目就ok了。</p>
+<p>注意，不需要自己添加新的数据连接池配置类<code>DataSourceConfig</code>。添加了之后可能会导致项目启动失败或者部分属性例如<code>maxActive</code>,<code>minIdle</code>等这些不生效，具体原理下面会说。</p>
+<p>3.原理</p>
+<p>简单说下原理，这里用到了自动装配原理。</p>
+<p>关键是这个类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConditionalOnClass</span>(&#123;DruidDataSource.class&#125;)</span><br><span class="line"><span class="meta">@AutoConfigureBefore</span>(&#123;DataSourceAutoConfiguration.class&#125;)</span><br><span class="line"><span class="meta">@EnableConfigurationProperties</span>(&#123;DruidStatProperties.class, DataSourceProperties.class&#125;)</span><br><span class="line"><span class="meta">@Import</span>(&#123;DruidSpringAopConfiguration.class, DruidStatViewServletConfiguration.class, DruidWebStatFilterConfiguration.class, DruidFilterConfiguration.class&#125;)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DruidDataSourceAutoConfigure</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(DruidDataSourceAutoConfigure.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DruidDataSourceAutoConfigure</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span>(</span><br><span class="line">        initMethod = <span class="string">"init"</span></span><br><span class="line">    )</span><br><span class="line">    <span class="meta">@ConditionalOnMissingBean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        LOGGER.info(<span class="string">"Init DruidDataSource"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DruidDataSourceWrapper();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><em><code>@Configuration</code></em></strong>用于定义配置类，被注解的类内部包含有一个或多个被<code>@Bean</code>注解的方法，这些方法将会被<code>AnnotationConfigApplicationContext</code>或<code>AnnotationConfigWebApplicationContext</code>类进行扫描，并用于构建bean定义，初始化Spring容器。</p>
+<p><strong><em><code>@ConditionalOnClass({DruidDataSource.class})</code></em></strong>这段可以简单理解为只有当<code>DruidDataSource.class</code>这个类存在时候才会实例化<code>DruidDataSourceAutoConfigure</code>中定义的Bean。</p>
+<p><strong><em><code>@AutoConfigureBefore({DataSourceAutoConfiguration.class})</code></em></strong>表示<code>DruidDataSourceAutoConfigure</code>要在<code>DataSourceAutoConfiguration</code>这个类之前加载。</p>
+<p><strong><em><code>@EnableConfigurationProperties({DruidStatProperties.class, DataSourceProperties.class})</code></em></strong>表示开启自动装配属性，不需要手动set。与注解<code>ConfigurationProperties</code>配合使用，<code>ConfigurationProperties</code>负责将配置文件中的属性放到对象对应的属性中。</p>
+<p><strong><em><code>@Import({DruidSpringAopConfiguration.class, DruidStatViewServletConfiguration.class, DruidWebStatFilterConfiguration.class, DruidFilterConfiguration.class})</code></em></strong>表示把用到的资源导入到IOC容器中。在这里就表示将这几个类实例化为Bean后加载到IOC容器中。不仅可以导入类，也可以通过<code>@ImportResource</code>导入xml或者properties配置文件。</p>
+<p>然后我们看类的实现，比较简单，除了构造方法只有一个方法<code>public DataSource dataSource()</code>，这个方法就是返回一个数据库连接池Bean。包含了两个注解：</p>
+<p><strong><em><code>@Bean( initMethod = &quot;init&quot; )</code></em></strong>表示返回一个Bean，同时在Bean初始化的时候要执行<code>init</code>这个方法。</p>
+<p><strong><em><code>@ConditionalOnMissingBean</code></em></strong>简单理解就是当<code>dataSource</code>这个Bean不存在时候才会加载这个Bean。</p>
+<p>返回的Bean很简单就是new了一个<code>DruidDataSourceWrapper</code>对象。</p>
+<p>接下来看下<code>DruidDataSourceWrapper</code>这个类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ConfigurationProperties</span>(<span class="string">"spring.datasource.druid"</span>)</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DruidDataSourceWrapper</span> <span class="keyword">extends</span> <span class="title">DruidDataSource</span> <span class="keyword">implements</span> <span class="title">InitializingBean</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> DataSourceProperties basicProperties;</span><br><span class="line"></span><br><span class="line">    DruidDataSourceWrapper() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterPropertiesSet</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">super</span>.getUsername() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">super</span>.setUsername(<span class="keyword">this</span>.basicProperties.determineUsername());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">super</span>.getPassword() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">super</span>.setPassword(<span class="keyword">this</span>.basicProperties.determinePassword());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">super</span>.getUrl() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">super</span>.setUrl(<span class="keyword">this</span>.basicProperties.determineUrl());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">super</span>.getDriverClassName() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">super</span>.setDriverClassName(<span class="keyword">this</span>.basicProperties.getDriverClassName());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span>(</span><br><span class="line">        required = <span class="keyword">false</span></span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">autoAddFilters</span><span class="params">(List&lt;Filter&gt; filters)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.filters.addAll(filters);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setMaxEvictableIdleTimeMillis</span><span class="params">(<span class="keyword">long</span> maxEvictableIdleTimeMillis)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">super</span>.setMaxEvictableIdleTimeMillis(maxEvictableIdleTimeMillis);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalArgumentException var4) &#123;</span><br><span class="line">            <span class="keyword">super</span>.maxEvictableIdleTimeMillis = maxEvictableIdleTimeMillis;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><em><code>@ConfigurationProperties(&quot;spring.datasource.druid&quot;)</code></em></strong>这个注解上面已经提到就是为了自动装配属性，装配哪些属性由括号里面的决定，这里是装配配置文件中<code>spring.datasource.druid</code>开头的属性。看下之前的properties文件，发现主要是数据库连接池中<code>maxActive</code>,<code>minIdle</code>等这些属性。那么就会有个问题，连接池的最基础的属性<code>url, username,password,driverClassName</code>这些在配置文件中不是以<code>spring.datasource.druid</code>开头的，那么是怎么装配呢？有两种方法：</p>
+<ol>
+<li><p>根据上面我们说的<code>@ConfigurationProperties(&quot;spring.datasource.druid&quot;)</code>可以装配以<code>spring.datasource.druid</code>开头的属性，将properties文件中这几项的配置改为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">spring.datasource.druid.url=jdbc:mysql://localhost:3306/workflow?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false</span><br><span class="line">spring.datasource.druid.username=workflow</span><br><span class="line">spring.datasource.druid.password=workflow</span><br><span class="line">spring.datasource.druid.driver-class-name=com.mysql.jdbc.Driver</span><br></pre></td></tr></table></figure>
+
+<p>类似这样。这样<code>@ConfigurationProperties(&quot;spring.datasource.druid&quot;)</code>注解会将属性装配进来。</p>
+</li>
+<li><p>我们发现不修改也会装配进来，即下面这种形式也会装配进来</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">spring.datasource.url=jdbc:mysql://localhost:3306/workflow?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false</span><br><span class="line">spring.datasource.username=workflow</span><br><span class="line">spring.datasource.password=workflow</span><br><span class="line">spring.datasource.driver-class-name=com.mysql.jdbc.Driver</span><br></pre></td></tr></table></figure>
+
+<p>为什么会这样呢？</p>
+<p>这与这个类<code>DruidDataSourceWrapper</code>里面的一个方法有关：<code>afterPropertiesSet()</code>。</p>
+</li>
+</ol>
+<p><code>afterPropertiesSet</code>这个方法是<code>InitializingBean</code>接口的实现，根据名称我们就可以猜到这个类和Bean的初始化有关系。<strong><em>这个方法会在Bean初始化的时候执行，并且是先于<code>init</code>方法执行的</em></strong>。具体分析我们以后文章会分析，可以关注下。</p>
+<p><code>afterPropertiesSet</code>这个方法我们看实现就是为了把<code>url, username,password,driverClassName</code>这几个属性放到数据连接池对象中对应的属性。就是简单的set方法，我们看到这几个属性来自于<code>DataSourceProperties</code>这个类的对象，那么这个类的对象从哪里获得连接的基本属性呢，看下类的实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ConfigurationProperties</span>(</span><br><span class="line">    prefix = <span class="string">"spring.datasource"</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DataSourceProperties</span> <span class="keyword">implements</span> <span class="title">BeanClassLoaderAware</span>, <span class="title">InitializingBean</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> ClassLoader classLoader;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> generateUniqueName;</span><br><span class="line">    <span class="keyword">private</span> Class&lt;? extends DataSource&gt; type;</span><br><span class="line">    <span class="keyword">private</span> String driverClassName;</span><br><span class="line">    <span class="keyword">private</span> String url;</span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    <span class="keyword">private</span> String password;</span><br></pre></td></tr></table></figure>
+
+<p>类太长，我们看关键部分。</p>
+<p>这里还是用到了<code>@ConfigurationProperties(&quot;spring.datasource&quot;)</code>这个注解，它负责把properties中<code>spring.datasource</code>开头的属性装配到类<code>DataSourceProperties</code>对象中对应的属性中。然后再通过<code>afterPropertiesSet</code>方法放到<code>DruidDataSourceWrapper</code>中对应的属性。</p>
+<p>这样就会将所有的配置属性初始化到<code>DataSource</code>Bean中。</p>
+<p>这种配置Druid连接池方法中用到的最关键的技术就是Springboot的自动装配原理</p>
+<h3 id="2-非Starter方法"><a href="#2-非Starter方法" class="headerlink" title="2.非Starter方法"></a>2.非Starter方法</h3><ol>
+<li><p>引入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>druid<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.1.9<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加属性</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">spring.datasource.druid.url=jdbc:mysql://localhost:3306/workflow?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false</span><br><span class="line">spring.datasource.druid.username=workflow</span><br><span class="line">spring.datasource.druid.password=workflow</span><br><span class="line">spring.datasource.druid.driver-class-name=com.mysql.jdbc.Driver</span><br><span class="line"></span><br><span class="line">spring.jpa.database-platform=org.hibernate.dialect.MySQL5InnoDBDialect</span><br><span class="line"></span><br><span class="line">spring.datasource.druid.initial-size=1</span><br><span class="line">spring.datasource.druid.max-active=20</span><br><span class="line">spring.datasource.druid.min-idle=3</span><br><span class="line">spring.datasource.druid.max-wait=60000</span><br><span class="line">spring.datasource.druid.pool-prepared-statements=true</span><br><span class="line">spring.datasource.druid.max-pool-prepared-statement-per-connection-size=20</span><br><span class="line">spring.datasource.druid.filters=stat,wall,slf4j</span><br><span class="line">spring.datasource.druid.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加数据源配置类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DataSourceConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties</span>(prefix = <span class="string">"spring.datasource.druid"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DruidDataSource();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里要注意配置properties文件中的<code>url, username,password,driverClassName</code>属性的写法，是包含“druid”的，因为这里也是用到了注解<code>@ConfigurationProperties(prefix = &quot;spring.datasource.druid&quot;)</code>来自动装配属性的，我们指定了自动装配以<code>spring.datasource.druid</code>开头的属性，如果写成<code>spring.datasource.url</code>则是没有办法自动装配的，属性不会生效。</p>
+<p>当然还有其他方法就是不使用自动装配，通过注解<code>@Value</code>获取到配置文件属性，然后手动用set方法将属性设置到DataSource对象对应的属性中去，这样比较麻烦，不推荐。</p>
+</li>
+</ol>
+
+  </div>
+  <div class="post-footer">
+    
+
+    <a href="#top" class="top">Back to Top</a>
+  </div>
+</article>
+<footer>
+  &copy; 2020
+  <span class="author">
+    Simba Lee
+  </span>
+</footer>
+    </div>
+  </body>
+</html>
