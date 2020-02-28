@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  
+  <title>敏捷开发之技术债务 - My Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  
+  <meta name="keywords" content="agile">
+  
+  
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.02">
+  
+  
+    <link rel="alternate" href="/atom.xml " title="My Blog" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/style.css">
+</head></html>
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="blog-title">
+    <a href="/" class="logo">My Blog</a>
+    <div class="subtitle"></div>
+  </div>
+  <nav class="navbar">
+    <ul class="menu">
+      
+        <li class="menu-item">
+          <a href="/" class="menu-item-link">Home</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/archives" class="menu-item-link">Archives</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/about" class="menu-item-link">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+</header>
+<article class="post">
+  <div class="post-title">
+    <h1 class="article-title">敏捷开发之技术债务</h1>
+  </div>
+   <div class="post-meta">
+    <span class="post-time">2020-02-28</span>
+  </div>
+  <div class="post-content">
+    <h3 id="什么是技术债务"><a href="#什么是技术债务" class="headerlink" title="什么是技术债务"></a>什么是技术债务</h3><p>“技术债务”这一概念是沃德·坎宁安在1992年提出的，指的是开发团队在设计或架构选型时从短期效应的角度选择了一个易于实现的方案，但从长远来看，这种方案会带来更消极的影响，亦即开发团队所欠的债务。</p>
+<p>技术债务是开发团队在质量目标和约束目标平衡之后的结果，目的都是为乐最大化的交付价值。技术债务除了长远的不利影响之外，近期交付的价值却是客观的，能够迅速推出新产品，适应快速变化的市场。</p>
+<p>那么究竟谁该为技术债务负责，或者说改怎样消除技术债务？</p>
+<p>既然是“技术债务”，那么是不是以为着仅仅是技术人员负责呢？当然不是，尽管技术人员重构代码是减少技术债务的重要手段，但是其他角色也应该充分发挥其作用，毕竟要消除技术债务需要重构的不仅仅是代码。  </p>
+<h3 id="部门LEADER"><a href="#部门LEADER" class="headerlink" title="部门LEADER"></a>部门LEADER</h3><p>敏捷的一个重要原则是“不断关注技术是否优秀，设计是否良好”，作为Leade应该意识到没有最好的架构，只有更合理的架构，从决策层面去考虑现有的资源配置是否合理，他们的决策应该具有前瞻性。</p>
+<h3 id="Product-Owner"><a href="#Product-Owner" class="headerlink" title="Product Owner"></a>Product Owner</h3><p>产品负责人（PO）主要负责收集业务需求，并按照优先级放入迭代，交由开发人员按照迭代计划开发。PO应该意识到偿还技术债务的重要性，在向迭代中输出需求时应该给技术团队预留重构代码的时间。</p>
+<h3 id="架构师"><a href="#架构师" class="headerlink" title="架构师"></a>架构师</h3><p>架构师应该认识到重构架构的必要性，并投入精力来分析代码重构的影响并适当的重构架构。同时，系统的架构应该和整个公司的技术架构保持一致。</p>
+<h3 id="测试工程师"><a href="#测试工程师" class="headerlink" title="测试工程师"></a>测试工程师</h3><p>在将每个代码更改部署到生产之前，都必须进行测试。基于重构的代码或设计，测试工程师需要重构测试用例，某些测试用例可能是多余的，不再需要；某些测试用例可能必须更新。在实施这些更改时，测试工程师应确保不要错过验证原始功能的机会。</p>
+<h3 id="基础设施团队"><a href="#基础设施团队" class="headerlink" title="基础设施团队"></a>基础设施团队</h3><p>不仅仅是重构代码，有时候整个服务架构需要重构，这时有可能也需要相应的基础设施重构，这时候就需要开发，测试，架构和基础设施团队紧密合作。在比较成熟的Devops团队中，这种合作和和常见的。</p>
+<p>综上，适当的技术债务可以加快整个团队价值的交付，正如战略性的债务规划可以优化公司是金融界的共识。然而技术债务的重要性应该是自上而下整个团队的共识，它不仅限于代码，而是涵盖整开发周期的所有阶段。定时的偿还技术债务可以保障系统的稳定运行，提振团队士气。</p>
+<p>总而言之，我们很容易用非黑即白、非好即坏的眼光看待世界，但构筑软件要远比这要复杂的多。如果单一的认定技术债务是团队失误，那产品将永远无法适应快速变化的市场。如果盲目认定技术债务总是好的，最终技术债务的积累终将会导致整个系统的崩溃。如果能始终保持清晰的头脑掌握均衡之道，那么技术债务可以为团队带来巨大红利。</p>
+
+  </div>
+  <div class="post-footer">
+    
+      <ul class="post-tag-list"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/agile/">agile</a></li></ul>
+    
+
+    <a href="#top" class="top">Back to Top</a>
+  </div>
+</article>
+<footer>
+  &copy; 2020
+  <span class="author">
+    Simba Lee
+  </span>
+</footer>
+    </div>
+  </body>
+</html>
