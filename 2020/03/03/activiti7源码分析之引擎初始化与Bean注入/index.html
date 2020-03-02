@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  
+  <title>activiti7源码分析之引擎初始化与Bean注入 - My Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  
+  <meta name="keywords" content="activiti">
+  
+  
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.02">
+  
+  
+    <link rel="alternate" href="/atom.xml " title="My Blog" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/style.css">
+</head></html>
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="blog-title">
+    <a href="/" class="logo">My Blog</a>
+    <div class="subtitle"></div>
+  </div>
+  <nav class="navbar">
+    <ul class="menu">
+      
+        <li class="menu-item">
+          <a href="/" class="menu-item-link">Home</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/archives" class="menu-item-link">Archives</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/about" class="menu-item-link">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+</header>
+<article class="post">
+  <div class="post-title">
+    <h1 class="article-title">activiti7源码分析之引擎初始化与Bean注入</h1>
+  </div>
+   <div class="post-meta">
+    <span class="post-time">2020-03-03</span>
+  </div>
+  <div class="post-content">
+    <p>在之前的一篇文章中，介绍了<code>Soringboot2</code>与<code>activiti7</code>整合，本文我们看下整合后的<code>activiti7</code>是如何初始化的，以及相关<code>Bean</code>如何注入。</p>
+<h3 id="配置和创建工作流引擎"><a href="#配置和创建工作流引擎" class="headerlink" title="配置和创建工作流引擎"></a>配置和创建工作流引擎</h3><p>首先第一个问题，<code>activiti7</code>的初始化工作是怎么启动呢？我得从盘古开天辟地说起，顺便复习下<code>Springboot</code>相关知识。</p>
+<p><code>Springboot</code>的main函数上有个注解<code>@SpringBootApplication</code>，我们看下这个注解的的实现，只看关键部分：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gcfvy1c6edj30u00xdtd5.jpg" alt="SpringbootApplication注解"></p>
+<p>在这段代码中有一个关键的注解<code>@EnableAutoConfiguration</code>,这个注解的作用是顾名思义的就是允许自动配置，怎么实现呢，继续看<code>@EnableAutoConfiguration</code>的源码：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gcfw2wozq4j318e0neadb.jpg" alt="EnableAutoConfiguration"></p>
+<p>在这段代码中,<code>@Import({AutoConfigurationImportSelector.class})</code>的作用是将<code>AutoConfigurationImportSelector</code>这个类注册为Bean交给容器管理。这个类里面有个关键方法<code>public String[] selectImports(AnnotationMetadata annotationMetadata)</code>，作用是扫描所有包（包含依赖jar包）中的<code>META-INF/spring.factories</code>文件，把其中key为”…EnableAutoConfiguration”对应的value里的类都加载为Bean。</p>
+<p>看下<code>activiti-spring-boot-starter</code>这个包中<code>spring.factories</code>文件的内容：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gcfxedb7tij31460cqtc5.jpg" alt="spring.factories"></p>
+<p>所以，这个文件里面的三个类都被加载为Bean。即<code>EndpointAutoConfiguration</code>，<code>ProcessEngineAutoConfiguration</code>，<code>ActivitiMethodSecurityAutoConfiguration</code>这三个。这就是<code>Springboot</code>的自动配置原理。总结起来就是<code>@EnableAutoConfiguration</code>会自动扫描所有包下面的<code>META-INF/spring.factories</code>文件，将其中key以<code>EnableAutoConfiguration</code>结尾的对应的value的类全部加载为Bean。这就是SPI机制，与JDK中的SPI和DUBBO的SPI类似，但是具体实现方法不一样。关于SPI我之后会详细讲解。</p>
+<p>我们关注<code>ProcessEngineAutoConfiguration</code>这个Bean，其余两个以后再解释。</p>
+<p>看下<code>ProcessEngineAutoConfiguration</code>这个类部分的源码：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gcfxxzczufj31kw0fq41o.jpg" alt="ProcessEngineAutoConfiguration"></p>
+<p>这个类主要作用的就是流程引擎的配置，注解<code>@EnableConfigurationProperties({ActivitiProperties.class, AsyncExecutorProperties.class})</code>会将在<code>properties</code>中的配置属性映射到对应的类的属性中去。例如常用的在<code>application-dev.properties</code>配置的<code>database-schema-update</code>，<code>history-level</code>，<code>db-history-used</code>等属性就是在这里被映射到类<code>ActivitiProperties</code>中去的,然后在<code>SpringProcessEngineConfiguration springProcessEngineConfiguration()</code>方法中添加到引擎配置类中的。</p>
+<p><code>ProcessEngineAutoConfiguration</code>中会注册很多Bean，其中有个比较重要：</p>
+<p><code>SpringProcessEngineConfiguration</code>这个Bean主要负责流程引擎的配置，将数据源和<code>Springboot</code>配置文件中配置的<code>activiti7</code>的相关属性配置到引擎中去。这个Bean被注解<code>@ConditionalOnMissingBean</code>修饰，意思是只有在容器中不存在<code>SpringProcessEngineConfiguration</code>的情况下这个Bean才会被注册，因此如果要自定义自己的引擎配置，重新定义一个<code>SpringProcessEngineConfiguration</code>类型的Bean即可。</p>
+<p><code>ProcessEngineAutoConfiguration</code>继承了<code>AbstractProcessEngineAutoConfiguration</code>，这个抽象类里面定义了几个比较重要的Bean：</p>
+<p><code>ProcessEngineFactoryBean</code>这个Bean的主要作用产生<code>ProcessEngine</code> Bean，可以理解为是产生Bean的Bean，比较拗口。这个Bean实现了<code>FactoryBean</code>接口，<code>FactoryBean</code>接口是spring里面一个接口，与它长得比较类似的事<code>BeanFactory</code>，它们作用完全不一样。<code>FactoryBean</code>是一个工厂Bean，可以生成某一个类型Bean实例，它最大的一个作用是：可以让我们自定义Bean的创建过程。<code>BeanFactory</code>是一个接口，它是Spring中工厂的顶层规范，是SpringIoc容器的核心接口，它定义了<code>getBean()</code>、<code>containsBean()</code>等管理Bean的通用方法。Spring的容器都是它的具体实现，它负责管理所有的Bean，包括<code>FactoryBean</code>。</p>
+<p>上面说到<code>FactoryBean</code>可以让我们自定义Bean的创建过程，那么怎么定义呢，方法很简单，只要实现<code>FactoryBean</code>的<code>getObject</code>方法即可。看下<code>ProcessEngineFactoryBean</code>中<code>getObject</code>的实现：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gcfzexfp4dj31kw0jqn0u.jpg" alt="getObject"></p>
+<p>这里返回的类型也就是这个<code>ProcessEngineFactoryBean</code>产生的Bean即为<code>Processengine</code>。说了这么多，可以简单概括为<code>ProcessEngineFactoryBean</code>主要是负责产生一个<code>Processengine</code>，实现引擎Bean的注入。</p>
+<p>这个抽象类中还注入了其他常用的Bean，例如<code>RuntimeService</code>，<code>RepositoryService</code>，<code>HistoryService</code>，<code>TaskService</code>等。</p>
+<p>与这个过程类似，在初始化的时候还加载了许多其他类型的Bean。</p>
+<p>在<code>ProcessEngineFactoryBean</code>的<code>getObject</code>方法是为了创建<code>Processengine</code>，其中最关键的代码：</p>
+<p><code>this.processEngine = this.processEngineConfiguration.buildProcessEngine();</code>跟进去看这里的<code>buildProcessEngine()</code>的具体实现：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gcg1wqzwxaj312s0eqn0k.jpg" alt="buildProcessEngine"></p>
+<p>其中的<code>this.autoDeployResources(processEngine);</code>会在项目启动的时候将<code>classpath*:**/processes/</code>目录下的流程图自动部署。可以通过<code>spring.activiti.deployment-mode</code>这个属性设置各种不同的部署策略。</p>
+<p>这次先讲到这里，下次介绍下<code>activiti7</code>的命令模式。</p>
+
+  </div>
+  <div class="post-footer">
+    
+      <ul class="post-tag-list"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/activiti/">activiti</a></li></ul>
+    
+
+    <a href="#top" class="top">Back to Top</a>
+  </div>
+</article>
+<footer>
+  &copy; 2020
+  <span class="author">
+    Simba Lee
+  </span>
+</footer>
+    </div>
+  </body>
+</html>
