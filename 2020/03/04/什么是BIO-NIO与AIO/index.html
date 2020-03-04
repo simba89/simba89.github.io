@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  
+  <title>什么是BIO,NIO与AIO - My Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  
+  <meta name="keywords" content="java">
+  
+  
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=1.02">
+  
+  
+    <link rel="alternate" href="/atom.xml " title="My Blog" type="application/atom+xml">
+  
+
+  <link rel="stylesheet" href="/css/style.css">
+</head></html>
+  <body>
+    <div class="container">
+      <header class="header">
+  <div class="blog-title">
+    <a href="/" class="logo">My Blog</a>
+    <div class="subtitle"></div>
+  </div>
+  <nav class="navbar">
+    <ul class="menu">
+      
+        <li class="menu-item">
+          <a href="/" class="menu-item-link">Home</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/archives" class="menu-item-link">Archives</a>
+        </li>
+      
+        <li class="menu-item">
+          <a href="/about" class="menu-item-link">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+</header>
+<article class="post">
+  <div class="post-title">
+    <h1 class="article-title">什么是BIO,NIO与AIO</h1>
+  </div>
+   <div class="post-meta">
+    <span class="post-time">2020-03-04</span>
+  </div>
+  <div class="post-content">
+    <p>计算机中常见的IO模型主要分为几种BIO，NIO和AIO。</p>
+<p>操作系统的IO操作包括读写文件，Socket操作等。CPU分为内核态和用户态，出于安全考虑，所有用户的应用程序都工作在用户态，系统调用工作在内核态，例如当应用程序需要进行读文件操作时候，由应用程序向操作系统发起系统调用，由操作系统从IO设备将数据读到内核态，然后将数据从内核态拷贝到用户态（例如缓冲区），应用程序拿数据完成文件读取。这是个通用的过程，根据具体执行过程的不同可以分为BIO，NIO和AIO。</p>
+<p>关于阻塞需要说明一下：阻塞指的是之进程状态为“wait”状态，CPU不会给进程分配时间片，只有当数据准备好时，进程从“wait”转为“running”时，CPU才会给进程分配时间片继续执行。而应用程序while(1)循环不是阻塞。</p>
+<h3 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a>BIO</h3><p>这是最早做的IO模型，调用过程如图所示：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gchsbi5278j30fh0b3q32.jpg" alt></p>
+<p>具体步骤如下：</p>
+<ol>
+<li>应用程序发起系统调用，请求操作系统读数据；</li>
+<li>操作系统切换到内核态，去读取IO设备的数据，将数据由IO设备读到内核；</li>
+<li>读取完毕后将数据从内核复制到用户空间。</li>
+<li>数据返回。</li>
+</ol>
+<p>在这个读取数据过程中，系统调用一直没有返回数据，应用程序一直处于阻塞状态，等待数据准备就绪。</p>
+<p>假如说一个Socket通信程序的服务端，需要同时监听多个socket连接，a，b，c。其中a数据量大，耗费时间多，b很快，a在等待数据过程中，整个服务端处于阻塞状态，无法执行任何运算或响应任何的网络请求。效率比较低下。</p>
+<h3 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a>NIO</h3><p>BIO的问题在于应用程序一直处于等待数据准备就绪的状态，阻塞了整个应用程序。而BIO改进的地方就是，当数据没准备好的时候，内核直接告诉应用程序数据没有准备好就行了，不需要应用程序等待。</p>
+<p>执行过程过程如下图所示：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gchsbm99w9j30fe0b3glz.jpg" alt="NIO"></p>
+<p>当操作系统数据没有准备好时，立即返回，不需要阻塞等待，应用程序通过多次系统调用来等待数据操作完成。当有多个IO请求时候，每个都需要占用一个进程不断执行系统调用来查询数据是否准备完成，耗费大量的CPU资源。</p>
+<p>为了解决上面的问题，进化出了IO多路复用。</p>
+<p>假如说有3个IO操作，用一个线程专职负责轮询操作系统这三个IO操作的数据是否准备就绪，不需要每个IO操作都用一个线程去轮询。这就是多路复用。执行过程如下图所示：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gchsdfueg5j30fe0a674k.jpg" alt="NIO2"></p>
+<p>select专职监听各个IO操作是否就绪，此时应用程序也是阻塞的，当其中某个socket有数据准备就绪时，select返回通知应用程序，此时应用程序查找select监听的各个socket中哪个socket数据准备完成，执行后续操作。在这个过程中有个问题，应用程序还是需要挨个查询所有监听的socket查找数据准备就绪的socket，并且执行select调用时，还需要将全部监听的socket由用户空间复制到内核，执行效率不高，后续就产生了各种优化后的多路复用IO模型，如epoll。我们之后再单独详细分析。</p>
+<h3 id="AIO"><a href="#AIO" class="headerlink" title="AIO"></a>AIO</h3><p>NIO的过程是当操作系统数据准备好时通知应用程序，应用程序发起一起系统调用，将数据从内核复制到用户空间，然后应用程序读取数据做后续处理。异步调用采用了不同的方式，看下图：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gchsq7mst8j30fh0aljrk.jpg" alt="AIO"></p>
+<p>从图中可以看到，AIO和NIO最大的区别在于，AIO是当数据准备好并且将数据从内核复制到用户空间的时候才会通知应用程序，应用程序可以继续执行，不需要阻塞，当收到数据准备完成通知时候，应用程序也不需要再发起一次系统调用取数据，直接去用户空间取数据即可。</p>
+<p>本篇先捋清楚几种基础的IO模型，后续会展开详细分析。</p>
+
+  </div>
+  <div class="post-footer">
+    
+      <ul class="post-tag-list"><li class="post-tag-list-item"><a class="post-tag-list-link" href="/tags/java/">java</a></li></ul>
+    
+
+    <a href="#top" class="top">Back to Top</a>
+  </div>
+</article>
+<footer>
+  &copy; 2020
+  <span class="author">
+    Simba Lee
+  </span>
+</footer>
+    </div>
+  </body>
+</html>
